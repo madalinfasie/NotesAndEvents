@@ -20,11 +20,10 @@ import EventsPackage.ShowEvents;
 
 public class ShowNotes {
 	
-	protected JFrame frame;
-	protected JPanel controlPanel;
-	protected JPanel notesPanel;
-	private JPanel notesWrapPanel;
-	JScrollPane notesScrollPanel;
+	private JFrame frame;
+	private JPanel pnlControl;
+	private JPanel pnlNotes;
+	private JScrollPane pnlScrollNotes;
 	
 	public ShowNotes(){
 		buildGui();
@@ -50,8 +49,8 @@ public class ShowNotes {
 		//createComponents
 		createComponents();
 		//add the panels to the frame
-		frame.add(controlPanel, BorderLayout.NORTH);
-		frame.add(notesScrollPanel, BorderLayout.CENTER);
+		frame.add(pnlControl, BorderLayout.NORTH);
+		frame.add(pnlScrollNotes, BorderLayout.CENTER);
 		
 		frame.setResizable(false);
 		frame.setLocationRelativeTo(null);
@@ -61,14 +60,14 @@ public class ShowNotes {
 	
 	protected void createComponents(){		
 		//build control panel
-		controlPanel = new JPanel(null);
+		pnlControl = new JPanel(null);
 		
 		//build notes panel
-		notesPanel = new JPanel();
-		notesPanel.setLayout(new FlowLayout());
+		pnlNotes = new JPanel();
+		pnlNotes.setLayout(new FlowLayout());
 		
 		//apply a scroll panel
-		notesScrollPanel = new JScrollPane(notesPanel);
+		pnlScrollNotes = new JScrollPane(pnlNotes);
 		
 		//create the buttons for the control panel
 		JButton eventsButton = new JButton("Events");
@@ -85,19 +84,19 @@ public class ShowNotes {
 		//set component sizes and positions
 		eventsButton.setBounds(10, 5, 75, 30);
 		addNoteButton.setBounds(717, 5, 70, 30);
-		controlPanel.setPreferredSize(new Dimension(800, 40));
+		pnlControl.setPreferredSize(new Dimension(800, 40));
 		
 		//set font and text sizes
 		eventsButton.setFont(new Font("Helvetica", 0, 17));
 		addNoteButton.setFont(new Font("Helvetica", 0, 17));
 		
 		//set background colors
-		controlPanel.setBackground(new Color(230,220, 240));
-		notesPanel.setBackground(new Color(230,220, 240));
+		pnlControl.setBackground(new Color(230,220, 240));
+		pnlNotes.setBackground(new Color(230,220, 240));
 		
 		//add those buttons to the control panel
-		controlPanel.add(eventsButton);
-		controlPanel.add(addNoteButton);
+		pnlControl.add(eventsButton);
+		pnlControl.add(addNoteButton);
 		
 		// show all notes from database
 		String sqlSelect = "SELECT * FROM Notes;";
@@ -107,32 +106,14 @@ public class ShowNotes {
 		    ) {
 			if (rs != null){
 				if (!rs.isBeforeFirst()){
-				 	notesWrapPanel = new JPanel();
-				 	
 					JLabel defaultText = new JLabel("No notes. Click \"Add\" button to add a new one.");
 					defaultText.setFont(new Font("Helvetica", 0, 19));
-					
-					notesWrapPanel.add(defaultText);
-					notesPanel.add(notesWrapPanel);
-					
-					notesWrapPanel.setBackground(notesPanel.getBackground());
-					
-					notesPanel.setPreferredSize(new Dimension(0, 100 * notesPanel.getComponents().length));
-					notesScrollPanel.validate();
-					notesScrollPanel.repaint();
-					
+					pnlNotes.add(defaultText);					
 				}
-				while (rs.next()) {
-					int id = 0;
-					try {
-						id = rs.getInt("id");
-					} catch (SQLException e1) {
-						e1.printStackTrace();
-					}
-					//the id for EditNotes in the mouse event must be a constant
-					final int FINALID = id;
-					
-					JTextArea notesTitle = new JTextArea(2, 20);
+				while (rs.next()) {	
+				    final int ID_NOTE = rs.getInt("id");
+
+					JTextArea notesTitle = new JTextArea(2, 45);
 					notesTitle.setText(rs.getString("title"));
 					notesTitle.setWrapStyleWord(true);
 					notesTitle.setLineWrap(true);
@@ -143,39 +124,27 @@ public class ShowNotes {
 					notesTitle.setFont(new Font("Helvetica", 0, 18));
 				    notesTitle.setBorder(UIManager.getBorder("Label.border"));
 				    notesTitle.setBounds(5, 5, 750, 20);
-				    
+					
 				    // Go to edit note
 				    notesTitle.addMouseListener(new MouseAdapter(){
 						@Override
 					     public void mousePressed(MouseEvent e) {
-							new EditNotes(FINALID);
+							new AddNotes(ID_NOTE);
 
 							frame.setVisible(false);
 							frame.dispose();
 					     }
 					});
 					
-					notesWrapPanel = new JPanel();
+					JPanel pnlWrapNotes = new JPanel();
+					
+					pnlWrapNotes.setBackground(new Color(255, 255, 120));
+					pnlWrapNotes.setBorder(BorderFactory.createMatteBorder(5, 12, 5, 5, new Color(200,200, 160)));
+					
+					pnlWrapNotes.add(notesTitle);
+					pnlNotes.add(pnlWrapNotes);
+					pnlNotes.setPreferredSize(new Dimension(0, 100 * pnlNotes.getComponents().length));
 
-					notesWrapPanel.add(notesTitle);
-					// Go to edit note
-					notesWrapPanel.addMouseListener(new MouseAdapter(){
-						@Override
-					     public void mousePressed(MouseEvent e) {
-							new EditNotes(FINALID);
-							
-							frame.setVisible(false);
-							frame.dispose();
-					     }
-					});
-					notesWrapPanel.setBackground(new Color(255, 255, 120));
-					notesWrapPanel.setBorder(BorderFactory.createMatteBorder(5, 12, 5, 5, new Color(200,200, 160)));
-					
-					notesPanel.add(notesWrapPanel);
-					
-					notesPanel.setPreferredSize(new Dimension(0, 100 * notesPanel.getComponents().length));
-					notesScrollPanel.validate();
-					notesScrollPanel.repaint();
 				}
 				 
 			} 
@@ -183,6 +152,8 @@ public class ShowNotes {
 			System.out.println(e.getMessage());
 		}
 		
+		pnlScrollNotes.validate();
+		pnlScrollNotes.repaint();
 
 	}
 	
